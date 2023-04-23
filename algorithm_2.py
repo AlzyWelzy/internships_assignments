@@ -1,55 +1,58 @@
-# Step 1: Import required libraries
-import numpy as np
+# Import required libraries
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 from keras.models import Sequential
-from keras.layers import Dense, LSTM
-from sklearn.metrics import classification_report
+from keras.layers import LSTM, Dense
 
-# Step 2: Load the dataset
-df = pd.read_csv('student_performance.csv')
+# Load the dataset
+df = pd.read_csv("student_performance.csv")
 
-# Step 3: Clean the data
-df = df.drop(['id'], axis=1)
+# Clean the data
+df.dropna(inplace=True)
 
-# Step 4: Evaluate student performance
-df['cumulative_percentage'] = (df['1-1_percentage'] + df['1-2_percentage'] + df['2-1_percentage'] + df['2-2_percentage'] + df['3-1_percentage'] + df['3-2_percentage'])/6
-df['dropout'] = np.where(df['cumulative_percentage'] < 35, 1, 0)
-df['good_performance'] = np.where(df['cumulative_percentage'] >= 60, 1, 0)
-df['poor_performance'] = np.where(df['cumulative_percentage'] < 40, 1, 0)
-df['support_required'] = np.where((df['cumulative_percentage'] >= 40) & (df['cumulative_percentage'] < 60), 1, 0)
-df['eligible_for_placement'] = np.where((df['cumulative_percentage'] >= 65) & ((df['coding_skills'] == 1) | (df['academic_awards'] == 1) | (df['extracurricular_activities'] == 1)), 1, 0)
+# Evaluate student performance
+df["cumulative_percentage"] = df[
+    ["sem1_percent", "sem2_percent", "sem3_percent", "sem4_percent"]
+].mean(axis=1)
+df["performance"] = pd.cut(
+    df["cumulative_percentage"],
+    bins=[0, 35, 60, 75, 100],
+    labels=["dropout", "poor", "support", "good"],
+)
 
-# Step 5: Visualize critical values
-sns.boxplot(x='variable', y='value', data=pd.melt(df[['1-1_percentage', '1-2_percentage', '2-1_percentage', '2-2_percentage', '3-1_percentage', '3-2_percentage']]))
+# Visualize student performance
+sns.countplot(x="performance", data=df)
 
-# Step 6: Visualize critical values
-sns.countplot(x='dropout', data=df)
+# Prepare data for LSTM model
+X = df[
+    ["sem1_percent", "sem2_percent", "sem3_percent", "sem4_percent", "attendance"]
+].values
+y = pd.get_dummies(df["performance"]).values
+scaler = StandardScaler()
+X = scaler.fit_transform(X)
+X = X.reshape(X.shape[0], 1, X.shape[1])
 
-# Step 7: Prepare data for LSTM model
-X = df.drop(['dropout', 'good_performance', 'poor_performance', 'support_required', 'eligible_for_placement', 'cumulative_percentage'], axis=1).values
-y = df['dropout'].values
+# Split data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
 
-# Step 8: Split data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-# Step 9: Reshape input data for LSTM model
-X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
-X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
-
-# Step 10: Build and compile LSTM model
+# Build LSTM model
 model = Sequential()
-model.add(LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], 1)))
-model.add(LSTM(units=50))
-model.add(Dense(1, activation='sigmoid'))
-model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+model.add(LSTM(128, input_shape=(1, 5)))
+model.add(Dense(4, activation="softmax"))
+model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
 
-# Step 11: Train LSTM model on training data
-model.fit(X_train, y_train, epochs=50, batch_size=32)
+# Train LSTM model
+history = model.fit(
+    X_train, y_train, epochs=50, batch_size=32, validation_data=(X_test, y_test)
+)
 
-# Step 12: Evaluate LSTM model
-y_pred = model.predict(X_test)
-y_pred = np.where(y_pred > 0.5, 1, 0)
-print(classification_report(y_test, y_pred))
+# Evaluate LSTM model
+score = model.evaluate(X_test, y_test)
+print("Test loss:", score[0])
+print("Test accuracy:", score[1])

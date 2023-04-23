@@ -1,34 +1,32 @@
-import numpy as np
-import pandas as pd
+import random
+import csv
 
-# Generate random data for the dataset
-n_samples = 1000
+# Define the number of students
+num_students = 1000
 
-student_id = np.arange(1, n_samples+1)
-1_1_percentage = np.random.randint(20, 100, size=n_samples)
-1_2_percentage = np.random.randint(20, 100, size=n_samples)
-2_1_percentage = np.random.randint(20, 100, size=n_samples)
-2_2_percentage = np.random.randint(20, 100, size=n_samples)
-3_1_percentage = np.random.randint(20, 100, size=n_samples)
-3_2_percentage = np.random.randint(20, 100, size=n_samples)
-coding_skills = np.random.randint(0, 2, size=n_samples)
-academic_awards = np.random.randint(0, 2, size=n_samples)
-extracurricular_activities = np.random.randint(0, 2, size=n_samples)
+# Define the minimum and maximum values for semester percentages
+min_percent = 20
+max_percent = 100
 
-# Create a dictionary for the data
-data_dict = {'id': student_id,
-             '1-1_percentage': 1_1_percentage,
-             '1-2_percentage': 1_2_percentage,
-             '2-1_percentage': 2_1_percentage,
-             '2-2_percentage': 2_2_percentage,
-             '3-1_percentage': 3_1_percentage,
-             '3-2_percentage': 3_2_percentage,
-             'coding_skills': coding_skills,
-             'academic_awards': academic_awards,
-             'extracurricular_activities': extracurricular_activities}
+# Define the minimum and maximum values for attendance percentages
+min_attendance = 50
+max_attendance = 100
 
-# Convert the dictionary to a pandas DataFrame
-df = pd.DataFrame(data_dict)
+# Generate random student data
+data = []
+for i in range(num_students):
+    sem1_percent = random.randint(min_percent, max_percent)
+    sem2_percent = random.randint(min_percent, max_percent)
+    sem3_percent = random.randint(min_percent, max_percent)
+    sem4_percent = random.randint(min_percent, max_percent)
+    attendance = random.randint(min_attendance, max_attendance)
+    row = [sem1_percent, sem2_percent, sem3_percent, sem4_percent, attendance]
+    data.append(row)
 
-# Save the DataFrame to a CSV file
-df.to_csv('student_performance.csv', index=False)
+# Write the data to a CSV file
+with open("student_performance.csv", "w", newline="") as file:
+    writer = csv.writer(file)
+    writer.writerow(
+        ["sem1_percent", "sem2_percent", "sem3_percent", "sem4_percent", "attendance"]
+    )
+    writer.writerows(data)
