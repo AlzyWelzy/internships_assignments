@@ -1,4 +1,3 @@
-# Import required libraries
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -8,51 +7,86 @@ from sklearn.preprocessing import StandardScaler
 from keras.models import Sequential
 from keras.layers import LSTM, Dense
 
-# Load the dataset
-df = pd.read_csv("student_performance.csv")
 
-# Clean the data
-df.dropna(inplace=True)
+class StudentPerformance:
+    def __init__(self, file_path):
+        self.df = pd.read_csv(file_path)
+        self.X_train = None
+        self.X_test = None
+        self.y_train = None
+        self.y_test = None
+        self.history = None
+        self.score = None
 
-# Evaluate student performance
-df["cumulative_percentage"] = df[
-    ["sem1_percent", "sem2_percent", "sem3_percent", "sem4_percent"]
-].mean(axis=1)
-df["performance"] = pd.cut(
-    df["cumulative_percentage"],
-    bins=[0, 35, 60, 75, 100],
-    labels=["dropout", "poor", "support", "good"],
-)
+    def clean_data(self):
+        self.df.dropna(inplace=True)
 
-# Visualize student performance
-sns.countplot(x="performance", data=df)
+    def evaluate_performance(self):
+        self.df["cumulative_percentage"] = self.df[
+            ["sem1_percent", "sem2_percent", "sem3_percent", "sem4_percent"]
+        ].mean(axis=1)
+        self.df["performance"] = pd.cut(
+            self.df["cumulative_percentage"],
+            bins=[0, 35, 60, 75, 100],
+            labels=["dropout", "poor", "support", "good"],
+        )
 
-# Prepare data for LSTM model
-X = df[
-    ["sem1_percent", "sem2_percent", "sem3_percent", "sem4_percent", "attendance"]
-].values
-y = pd.get_dummies(df["performance"]).values
-scaler = StandardScaler()
-X = scaler.fit_transform(X)
-X = X.reshape(X.shape[0], 1, X.shape[1])
+    def prepare_data(self):
+        X = self.df[
+            [
+                "sem1_percent",
+                "sem2_percent",
+                "sem3_percent",
+                "sem4_percent",
+                "attendance",
+            ]
+        ].values
+        y = pd.get_dummies(self.df["performance"]).values
+        scaler = StandardScaler()
+        X = scaler.fit_transform(X)
+        X = X.reshape(X.shape[0], 1, X.shape[1])
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42
+        )
 
-# Split data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
-)
+    def build_model(self):
+        model = Sequential()
+        model.add(LSTM(128, input_shape=(1, 5)))
+        model.add(Dense(4, activation="softmax"))
+        model.compile(
+            optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"]
+        )
+        return model
 
-# Build LSTM model
-model = Sequential()
-model.add(LSTM(128, input_shape=(1, 5)))
-model.add(Dense(4, activation="softmax"))
-model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
+    def train_model(self, model):
+        self.history = model.fit(
+            self.X_train,
+            self.y_train,
+            epochs=50,
+            batch_size=32,
+            validation_data=(self.X_test, self.y_test),
+        )
 
-# Train LSTM model
-history = model.fit(
-    X_train, y_train, epochs=50, batch_size=32, validation_data=(X_test, y_test)
-)
+    def evaluate_model(self, model):
+        self.score = model.evaluate(self.X_test, self.y_test)
+        print("Test loss:", self.score[0])
+        print("Test accuracy:", self.score[1])
 
-# Evaluate LSTM model
-score = model.evaluate(X_test, y_test)
-print("Test loss:", score[0])
-print("Test accuracy:", score[1])
+    def visualize_performance(self):
+        sns.countplot(x="performance", data=self.df)
+        plt.show()
+
+
+def main():
+    student_performance = StudentPerformance("student_performance.csv")
+    student_performance.clean_data()
+    student_performance.evaluate_performance()
+    student_performance.prepare_data()
+    model = student_performance.build_model()
+    student_performance.train_model(model)
+    student_performance.evaluate_model(model)
+    student_performance.visualize_performance()
+
+
+if __name__ == "__main__":
+    main()
