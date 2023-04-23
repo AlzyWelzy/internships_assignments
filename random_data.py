@@ -1,32 +1,43 @@
 import random
 import csv
 
-# Define the number of students
-num_students = 1000
 
-# Define the minimum and maximum values for semester percentages
-min_percent = 20
-max_percent = 100
+class RandomStudentData:
+    def __init__(
+        self, num_students, min_percent, max_percent, min_attendance, max_attendance
+    ):
+        self.num_students = num_students
+        self.min_percent = min_percent
+        self.max_percent = max_percent
+        self.min_attendance = min_attendance
+        self.max_attendance = max_attendance
 
-# Define the minimum and maximum values for attendance percentages
-min_attendance = 50
-max_attendance = 100
+    def generate_data(self):
+        # Generate random student data
+        data = []
+        for i in range(self.num_students):
+            sem1_percent = random.randint(self.min_percent, self.max_percent)
+            sem2_percent = random.randint(self.min_percent, self.max_percent)
+            sem3_percent = random.randint(self.min_percent, self.max_percent)
+            sem4_percent = random.randint(self.min_percent, self.max_percent)
+            attendance = random.randint(self.min_attendance, self.max_attendance)
+            row = [sem1_percent, sem2_percent, sem3_percent, sem4_percent, attendance]
+            data.append(row)
 
-# Generate random student data
-data = []
-for i in range(num_students):
-    sem1_percent = random.randint(min_percent, max_percent)
-    sem2_percent = random.randint(min_percent, max_percent)
-    sem3_percent = random.randint(min_percent, max_percent)
-    sem4_percent = random.randint(min_percent, max_percent)
-    attendance = random.randint(min_attendance, max_attendance)
-    row = [sem1_percent, sem2_percent, sem3_percent, sem4_percent, attendance]
-    data.append(row)
+        return data
 
-# Write the data to a CSV file
-with open("student_performance.csv", "w", newline="") as file:
-    writer = csv.writer(file)
-    writer.writerow(
-        ["sem1_percent", "sem2_percent", "sem3_percent", "sem4_percent", "attendance"]
-    )
-    writer.writerows(data)
+    def save_to_csv(self, filename):
+        # Write the data to a CSV file
+        data = self.generate_data()
+        with open(filename, "w", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow(
+                [
+                    "sem1_percent",
+                    "sem2_percent",
+                    "sem3_percent",
+                    "sem4_percent",
+                    "attendance",
+                ]
+            )
+            writer.writerows(data)
