@@ -41,3 +41,13 @@ class RandomStudentData:
                 ]
             )
             writer.writerows(data)
+
+
+def main():
+    # Generate random student data and save to CSV
+    random_student_data = RandomStudentData(100, 0, 100, 0, 100)
+    random_student_data.save_to_csv("student_performance.csv")
+
+
+if __name__ == "__main__":
+    main()
