@@ -1,24 +1,34 @@
 import numpy as np
 import pandas as pd
 
-# Generate random data for student_performance.csv
-num_students = 100
-df = pd.DataFrame(
-    {
-        "id": np.arange(num_students),
-        "gender": np.random.choice(["M", "F"], size=num_students),
-        "age": np.random.randint(18, 25, size=num_students),
-        "1-1_percentage": np.random.randint(0, 101, size=num_students),
-        "1-2_percentage": np.random.randint(0, 101, size=num_students),
-        "2-1_percentage": np.random.randint(0, 101, size=num_students),
-        "2-2_percentage": np.random.randint(0, 101, size=num_students),
-        "3-1_percentage": np.random.randint(0, 101, size=num_students),
-        "3-2_percentage": np.random.randint(0, 101, size=num_students),
-        "coding_skills": np.random.choice([0, 1], size=num_students),
-        "academic_awards": np.random.choice([0, 1], size=num_students),
-        "extracurricular_activities": np.random.choice([0, 1], size=num_students),
-    }
-)
+# Generate random data for the dataset
+n_samples = 1000
 
-# Save the dataset to student_performance.csv
-df.to_csv("student_performance.csv", index=False)
+student_id = np.arange(1, n_samples+1)
+1_1_percentage = np.random.randint(20, 100, size=n_samples)
+1_2_percentage = np.random.randint(20, 100, size=n_samples)
+2_1_percentage = np.random.randint(20, 100, size=n_samples)
+2_2_percentage = np.random.randint(20, 100, size=n_samples)
+3_1_percentage = np.random.randint(20, 100, size=n_samples)
+3_2_percentage = np.random.randint(20, 100, size=n_samples)
+coding_skills = np.random.randint(0, 2, size=n_samples)
+academic_awards = np.random.randint(0, 2, size=n_samples)
+extracurricular_activities = np.random.randint(0, 2, size=n_samples)
+
+# Create a dictionary for the data
+data_dict = {'id': student_id,
+             '1-1_percentage': 1_1_percentage,
+             '1-2_percentage': 1_2_percentage,
+             '2-1_percentage': 2_1_percentage,
+             '2-2_percentage': 2_2_percentage,
+             '3-1_percentage': 3_1_percentage,
+             '3-2_percentage': 3_2_percentage,
+             'coding_skills': coding_skills,
+             'academic_awards': academic_awards,
+             'extracurricular_activities': extracurricular_activities}
+
+# Convert the dictionary to a pandas DataFrame
+df = pd.DataFrame(data_dict)
+
+# Save the DataFrame to a CSV file
+df.to_csv('student_performance.csv', index=False)
